@@ -23,31 +23,36 @@ const PropertySearch: React.FC<PropertySearchProps> = ({ onSearch }) => {
 
   return (
     <div className="w-full bg-white rounded-lg shadow-lg p-4 md:p-6">
-      <div className="grid grid-cols-[1fr_auto] items-center gap-2 border rounded-md p-3 bg-gray-50">
-        <div className="flex items-center">
-          <Search size={18} className="text-gray-400 mr-2" />
-          <input
-            type="text"
-            placeholder="Enter address, city, or ZIP code"
-            value={location}
-            onChange={(e) => setLocation(e.target.value)}
-            className="w-full bg-transparent outline-none text-[#222222] placeholder-gray-400"
-          />
+      <div className="flex flex-col md:flex-row gap-4">
+        <div className="flex-grow relative">
+          <div
+            className={`border rounded-md p-3 flex items-center cursor-pointer ${
+              location ? 'bg-gray-50' : ''
+            }`}
+            onClick={() => setShowLocationSelector(true)}
+          >
+            <Search size={18} className="text-gray-400 mr-2" />
+            <span className={`${!location ? 'text-gray-400' : 'text-[#222222]'}`}>
+              {location || 'Enter address, city, or ZIP code'}
+            </span>
+          </div>
+          
+          <Dialog open={showLocationSelector} onOpenChange={setShowLocationSelector}>
+            <DialogContent className="sm:max-w-md">
+              <LocationSelector onSelectLocation={handleLocationSelect} />
+            </DialogContent>
+          </Dialog>
         </div>
-        <Button
-          className="bg-[#EA384C] hover:bg-[#d1293c] text-white"
-          onClick={handleSearch}
-        >
-          Search
-        </Button>
+        
+        <div className="flex items-center gap-2">
+          <Button 
+            className="bg-[#EA384C] hover:bg-[#d1293c] text-white"
+            onClick={handleSearch}
+          >
+            Search
+          </Button>
+        </div>
       </div>
-
-      {/* Location Selector Dialog */}
-      <Dialog open={showLocationSelector} onOpenChange={setShowLocationSelector}>
-        <DialogContent className="sm:max-w-md">
-          <LocationSelector onSelectLocation={handleLocationSelect} />
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };
