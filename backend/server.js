@@ -5,6 +5,8 @@ const { Server } = require("socket.io");
 const cors = require('cors');
 const AWS = require('aws-sdk');
 const authRoutes = require('./routes/authRoutes'); // Add this
+const userRoutes = require('./routes/userRoutes'); // Add this
+const propertyRoutes = require('./routes/propertyRoutes'); // Add this
 
 // Configure AWS SDK
 AWS.config.update({
@@ -60,6 +62,8 @@ io.on('connection', (socket) => {
 
 // --- Routes --- // Add this section heading if needed
 app.use('/api/auth', authRoutes); // Mount auth routes under /api/auth
+app.use('/api/users', userRoutes); // Mount user routes under /api/users
+app.use('/api/properties', propertyRoutes); // Mount property routes under /api/properties
 
 // Example base route
 app.get('/api', (req, res) => { // Changed from '/' to '/api'
