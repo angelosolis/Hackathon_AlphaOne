@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { Menu, X, User, Home } from 'lucide-react';
-import { Link } from 'react-router-dom'; // Import Link from react-router-dom
+import { Link, useLocation } from 'react-router-dom'; // Import useLocation
 import { Button } from "@/components/ui/button";
 
 const Navbar: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const location = useLocation(); // Get the current location
 
   return (
     <header className="border-b bg-white sticky top-0 z-50">
@@ -27,13 +28,23 @@ const Navbar: React.FC = () => {
           </nav>
           
           <div className="hidden md:flex items-center space-x-2">
-            <Link
-              to="/login"
-              className="flex items-center gap-2 border-[#EA384C] text-[#EA384C] hover:bg-[#EA384C] hover:text-white px-4 py-2 rounded-lg font-semibold"
-            >
-              <User size={18} />
-              <span>Login</span>
-            </Link>
+            {location.pathname === '/login' ? (
+              <Link
+                to="/register"
+                className="flex items-center gap-2 border-[#EA384C] text-[#EA384C] hover:bg-[#EA384C] hover:text-white px-4 py-2 rounded-lg font-semibold"
+              >
+                <User size={18} />
+                <span>Register</span>
+              </Link>
+            ) : (
+              <Link
+                to="/login"
+                className="flex items-center gap-2 border-[#EA384C] text-[#EA384C] hover:bg-[#EA384C] hover:text-white px-4 py-2 rounded-lg font-semibold"
+              >
+                <User size={18} />
+                <span>Login</span>
+              </Link>
+            )}
           </div>
           
           <div className="flex md:hidden">
@@ -56,12 +67,21 @@ const Navbar: React.FC = () => {
             <a href="/about" className="block px-3 py-2 text-[#222222] hover:text-[#EA384C] rounded-md">About Us</a>
             <a href="/blogs" className="block px-3 py-2 text-[#222222] hover:text-[#EA384C] rounded-md">Blogs</a>
             <a href="/agents" className="block px-3 py-2 text-[#222222] hover:text-[#EA384C] rounded-md">Find an Agent</a>
-            <Link
-              to="/login"
-              className="block px-3 py-2 text-[#222222] hover:text-[#EA384C] rounded-md"
-            >
-              Login
-            </Link>
+            {location.pathname === '/login' ? (
+              <Link
+                to="/register"
+                className="block px-3 py-2 text-[#222222] hover:text-[#EA384C] rounded-md"
+              >
+                Register
+              </Link>
+            ) : (
+              <Link
+                to="/login"
+                className="block px-3 py-2 text-[#222222] hover:text-[#EA384C] rounded-md"
+              >
+                Login
+              </Link>
+            )}
           </div>
         </div>
       )}
