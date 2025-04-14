@@ -1,73 +1,99 @@
-# Welcome to your Lovable project
+# AlphaOne Real Estate Platform
 
-## Project info
+## Project Overview
 
-**URL**: https://lovable.dev/projects/f5a69ac2-495a-445a-be86-8d1ff138ac75
+AlphaOne is a modern real estate platform designed to connect buyers with properties through intelligent AI-assisted interactions. The platform features a sophisticated property listing system with an integrated AI assistant that can provide detailed information about properties, schedule viewings, and answer buyer questions.
 
-## How can I edit this code?
+## Key Features
 
-There are several ways of editing your application.
+### Property Listings
+- Browse comprehensive property listings with detailed information
+- View high-quality property images with an interactive gallery
+- Filter properties by various criteria
+- See key property details at a glance (price, bedrooms, bathrooms, square footage)
 
-**Use Lovable**
+### Property Details
+- Explore in-depth property information with full-screen image gallery
+- View property specifications, features, and amenities
+- Check property status (Active, Pending, Sold)
+- Contact agents directly from property listings
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/f5a69ac2-495a-445a-be86-8d1ff138ac75) and start prompting.
+### AI Property Assistant
+- Chat with an intelligent AI assistant powered by OpenAI's GPT-4o model
+- Get instant answers to questions about property details, pricing, location, and features
+- Schedule property viewings through conversational interface
+- Voice input capability for hands-free interaction (speech-to-text)
+- Text-to-speech responses for an accessible, audio-based experience
+- Property context-aware responses for personalized assistance
 
-Changes made via Lovable will be committed automatically to this repo.
+### User Accounts
+- Secure login and registration system
+- Profile management for buyers, sellers and agents
+- Tracked interactions and saved properties
 
-**Use your preferred IDE**
+## Technical Architecture
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+The platform is built using:
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+- **Frontend**: React, TypeScript, TailwindCSS, shadcn-ui components
+- **Backend**: Node.js with Express server
+- **Database**: Amazon DynamoDB for scalable NoSQL data storage
+- **Storage**: Amazon S3 for property images
+- **AI Integration**: OpenAI's GPT-4o for intelligent property assistance
 
-Follow these steps:
+## DynamoDB Data Structure
+
+The platform utilizes a sophisticated DynamoDB schema with tables for:
+- Users (buyers, sellers, agents)
+- Properties
+- Property details and media
+- Transactions and documents
+- AI interactions
+
+## Getting Started
 
 ```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+# Install dependencies
+npm install
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# Start the development server
 npm run dev
+
+# Start the backend server
+cd backend
+npm install
+npm start
 ```
 
-**Edit a file directly in GitHub**
+## AI Assistant
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+The AI assistant is directly powered by OpenAI's GPT-4o model and is contextually aware of all property details:
+1. Each property's complete data (specifications, pricing, features, images) is fed to the AI model
+2. The AI uses this property-specific context to answer questions accurately and relevantly
+3. When users inquire about a property, the assistant already knows all details without requiring lookup
+4. The system maintains context throughout the conversation, referencing the specific property being discussed
 
-**Use GitHub Codespaces**
+This creates a deeply personalized experience where the AI functions as a knowledgeable real estate agent with instant recall of every property detail. Users can ask specific questions about features, compare to market averages, or inquire about aspects not explicitly listed in the general description.
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+The assistant features a complete voice interface:
+- Speech-to-text conversion for user input (voice commands and questions)
+- Text-to-speech synthesis for AI responses (audio playback)
+- Multi-modal interaction allowing both text and voice communication
 
-## What technologies are used for this project?
+This creates a truly conversational experience accessible to users on any device, especially beneficial for mobile users or those with accessibility needs.
 
-This project is built with:
+## Future Enhancements
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+- 3D virtual property tours
+- Mortgage calculator and financing options
+- Neighborhood insights and analytics
+- Advanced property matching based on user preferences
+- Full voice conversation capabilities
 
-## How can I deploy this project?
+## License
 
-Simply open [Lovable](https://lovable.dev/projects/f5a69ac2-495a-445a-be86-8d1ff138ac75) and click on Share -> Publish.
+This project is proprietary software.
 
-## Can I connect a custom domain to my Lovable project?
+---
 
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+Created with ❤️ by AlphaOne Team

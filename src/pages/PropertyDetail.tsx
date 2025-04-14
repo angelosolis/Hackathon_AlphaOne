@@ -43,12 +43,13 @@ const PropertyDetail = () => {
         // We only need the ID for the API call, the slug is just for SEO
         const response = await axios.get(`http://localhost:3001/api/properties/${id}`);
         
-        if (response.data && response.data.property) {
-          setProperty(response.data.property);
+        if (response.data) {
+          // The API returns the property directly, not nested in a property field
+          setProperty(response.data);
           
           // Initialize image loading state array
-          if (response.data.property.imageUrls) {
-            setImagesLoaded(new Array(response.data.property.imageUrls.length).fill(false));
+          if (response.data.imageUrls) {
+            setImagesLoaded(new Array(response.data.imageUrls.length).fill(false));
           }
         } else {
           setError('Property not found');
@@ -307,8 +308,12 @@ const PropertyDetail = () => {
             <div className="bg-white rounded-lg shadow-md p-6 sticky top-6">
               <h2 className="text-xl font-semibold mb-4">Contact Agent</h2>
               <p className="text-gray-600 mb-6">Interested in this property? Contact the listing agent for more information or to schedule a viewing.</p>
-              <Button className="w-full mb-2">Request Information</Button>
-              <Button variant="outline" className="w-full">Schedule Viewing</Button>
+              <Link to={`/chat?propertyId=${property.PropertyID}`} state={{ propertyDetails: property }}>
+                <Button className="w-full mb-2">Request Information</Button>
+              </Link>
+              <Link to={`/chat?propertyId=${property.PropertyID}&subject=viewing`} state={{ propertyDetails: property, subject: "viewing" }}>
+                <Button variant="outline" className="w-full">Schedule Viewing</Button>
+              </Link>
             </div>
           </div>
         </div>
