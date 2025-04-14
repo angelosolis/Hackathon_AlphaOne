@@ -1,3 +1,6 @@
+const path = require('path'); // Add path module
+require('dotenv').config({ path: path.resolve(__dirname, '../../.env') }); // Load .env from root
+
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const AWS = require('aws-sdk');
