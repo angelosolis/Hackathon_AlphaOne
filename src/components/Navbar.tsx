@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { Menu, X, User, Home, LogOut, UserCircle, Building } from 'lucide-react';
+import { Menu, X, User, Home, LogOut, UserCircle, Building, BarChart } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { useAuth } from '@/context/AuthContext';
+import logoImage from '../assets/491340402_653939030702596_2002223735433078664_n.png';
 
 const Navbar: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -17,10 +18,10 @@ const Navbar: React.FC = () => {
         <div className="flex justify-between h-16 items-center">
           <div className="flex items-center">
             <Link to="/" className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center">
-                <Home size={18} className="text-white" />
+              <div className="w-8 h-8 bg-white-500 rounded-full flex items-center justify-center">
+                <img src={logoImage} alt="PhilCon Logo" className="w-full h-full object-cover rounded-full" />
               </div>
-              <h1 className="text-xl font-bold text-gray-800">Filicon</h1>
+              <h1 className="text-xl font-bold text-gray-800">PhilCon</h1>
             </Link>
           </div>
           
@@ -40,6 +41,14 @@ const Navbar: React.FC = () => {
                 <span className="flex items-center gap-1.5">
                   <UserCircle size={16} />
                   Profile
+                </span>
+              </Link>
+            )}
+            {isAuthenticated && userType === 'Agent' && (
+              <Link to="/agent-dashboard" className="text-gray-600 hover:text-red-600 px-3 py-2 rounded-md text-sm font-medium">
+                <span className="flex items-center gap-1.5">
+                  <BarChart size={16} />
+                  Dashboard
                 </span>
               </Link>
             )}
@@ -105,6 +114,7 @@ const Navbar: React.FC = () => {
             <Link to="/blogs" onClick={closeMobileMenu} className="block px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-red-600 rounded-md">Blogs</Link>
             <Link to="/agents" onClick={closeMobileMenu} className="block px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-red-600 rounded-md">Find an Agent</Link>
             {isAuthenticated && <Link to="/profile" onClick={closeMobileMenu} className="block px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-red-600 rounded-md flex items-center gap-2"><UserCircle size={18} /> Profile</Link>}
+            {isAuthenticated && userType === 'Agent' && <Link to="/agent-dashboard" onClick={closeMobileMenu} className="block px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-red-600 rounded-md flex items-center gap-2"><BarChart size={18} /> Dashboard</Link>}
             <hr className="my-2" />
             {isAuthenticated ? (
               <Button

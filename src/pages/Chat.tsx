@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { useLocation, useSearchParams } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
-import { DollarSign, MapPin, Bed, Bath, Home, Mic, MicOff, Send, Loader2 } from "lucide-react";
+import { MapPin, Bed, Bath, Home, Mic, MicOff, Send, Loader2 } from "lucide-react";
 import axios from "axios";
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/context/AuthContext";
@@ -59,7 +59,7 @@ const Chat: React.FC = () => {
   const audioChunksRef = useRef<Blob[]>([]);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { toast } = useToast();
-  const { userId } = useAuth();
+  const { userId, token } = useAuth();
 
   const [appointmentDetails, setAppointmentDetails] = useState<AppointmentDetails>({
     requestedDate: null,
@@ -67,6 +67,9 @@ const Chat: React.FC = () => {
     notes: ''
   });
   const [showConfirmButton, setShowConfirmButton] = useState(false);
+
+  // Add new state variable for permission dialog
+  const [showPermissionDialog, setShowPermissionDialog] = useState(false);
 
   const fetchInitialAiMessage = async (details: Property, initialSubject?: string | null) => {
     console.log("Fetching initial AI message for property:", details.PropertyID);
@@ -303,7 +306,50 @@ Always identify yourself as the AI assistant for AlphaOne Real Estate.`;
     }
   };
 
-  const startRecording = async () => {
+  // Add function to detect Android and check/request permissions
+  const checkAndRequestMicrophonePermission = async () => {
+    // Check if on Android by examining the user agent
+    const isAndroid = /android/i.test(navigator.userAgent);
+    
+    // On Android, show a custom permission dialog first
+    if (isAndroid) {
+      try {
+        // First check if permissions are already granted
+        const permissionStatus = await navigator.permissions.query({ name: 'microphone' as PermissionName });
+        
+        if (permissionStatus.state === 'granted') {
+          // Permission already granted, proceed with recording
+          await startRecordingProcess();
+        } else if (permissionStatus.state === 'prompt') {
+          // Show our custom dialog before browser prompt
+          setShowPermissionDialog(true);
+        } else {
+          // Permission denied, show instructions
+          toast({
+            title: "Microphone Access Denied",
+            description: "Please enable microphone access in your browser settings to use voice input.",
+            variant: "destructive"
+          });
+        }
+      } catch (error) {
+        // If permissions API isn't available, just try to start recording
+        console.log("Could not check permissions, attempting to request directly");
+        setShowPermissionDialog(true);
+      }
+    } else {
+      // Not on Android, proceed normally
+      await startRecordingProcess();
+    }
+  };
+
+  // Function to handle user confirming they want to allow mic access
+  const handlePermissionConfirm = async () => {
+    setShowPermissionDialog(false);
+    await startRecordingProcess();
+  };
+  
+  // Rename existing startRecording to startRecordingProcess
+  const startRecordingProcess = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       setAudioStream(stream);
@@ -368,6 +414,11 @@ Always identify yourself as the AI assistant for AlphaOne Real Estate.`;
         variant: "destructive"
       });
     }
+  };
+  
+  // Update the startRecording function to use our new permission checker
+  const startRecording = async () => {
+    await checkAndRequestMicrophonePermission();
   };
   
   const stopRecording = () => {
@@ -523,6 +574,8 @@ Always identify yourself as the AI assistant for AlphaOne Real Estate.`;
 
         const response = await axios.post('/api/appointments', payload, {
            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
            }
         });
 
@@ -570,8 +623,8 @@ Always identify yourself as the AI assistant for AlphaOne Real Estate.`;
           </div>
           <div className="flex justify-between items-center mb-2">
             <span className="font-semibold flex items-center">
-              <DollarSign className="h-4 w-4" />
-              ₱{propertyDetails.Price?.toLocaleString()}
+              <span className="font-bold mr-1">₱</span>
+              {propertyDetails.Price?.toLocaleString()}
             </span>
             <span className={`px-2 py-1 rounded-full text-xs ${
               propertyDetails.Status === 'Active' ? 'bg-green-100 text-green-800' :
@@ -604,6 +657,29 @@ Always identify yourself as the AI assistant for AlphaOne Real Estate.`;
   return (
     <div className="min-h-screen flex flex-col bg-gray-100">
       <Navbar />
+      {/* Add the permission dialog */}
+      {showPermissionDialog && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full">
+            <h3 className="text-lg font-bold mb-4">Microphone Access Required</h3>
+            <p className="mb-6">
+              To use voice input, AlphaOne needs access to your microphone. When prompted by your browser, please tap "Allow".
+            </p>
+            <div className="flex justify-end space-x-3">
+              <Button 
+                variant="outline" 
+                onClick={() => setShowPermissionDialog(false)}
+              >
+                Cancel
+              </Button>
+              <Button onClick={handlePermissionConfirm}>
+                Continue
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+      
       <div className="container mx-auto px-4 py-8 flex-1 flex flex-col">
         <div className="flex justify-between items-center mb-4">
           <h1 className="text-2xl font-bold text-[#222222]">AI Property Assistant</h1>

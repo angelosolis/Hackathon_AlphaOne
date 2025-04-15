@@ -13,6 +13,11 @@ import Profile from "./pages/Profile";
 import CreateProperty from "./pages/CreateProperty";
 import Properties from "./pages/Properties";
 import PropertyDetail from "./pages/PropertyDetail";
+import FindAgent from "./pages/FindAgent"; // Import the FindAgent component
+import VerifyEmployment from "./pages/VerifyEmployment"; // Import the VerifyEmployment component
+import EditClientProfile from "./pages/EditClientProfile"; // Import the EditClientProfile component
+import AgentDashboard from "./pages/AgentDashboard"; // Import the AgentDashboard component
+import VerificationFlow from "./pages/VerificationFlow"; // Import the VerificationFlow component
 
 const queryClient = new QueryClient();
 
@@ -33,6 +38,12 @@ const App = () => (
             <Route path="/properties/:id" element={<Navigate to="/properties" replace />} />
             <Route path="/create-property" element={<CreateProperty />} />
             <Route path="/chat" element={<Chat />} />
+            <Route path="/agent" element={<FindAgent />} />
+            <Route path="/agents" element={<FindAgent />} />
+            <Route path="/agent-dashboard" element={<AgentDashboard />} />
+            <Route path="/verify" element={<VerificationFlow />} />
+            <Route path="/verify-employment" element={<VerifyEmployment />} />
+            <Route path="/edit-client-profile" element={<EditClientProfile />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

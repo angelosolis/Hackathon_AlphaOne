@@ -6,6 +6,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/context/AuthContext';
 import { Bed, Bath, Home, Loader2 } from 'lucide-react';
+import { ENDPOINTS } from '../config/api'; // Import API endpoints
 
 interface Property {
   PropertyID: string;
@@ -29,24 +30,33 @@ const Properties = () => {
   const [imageLoading, setImageLoading] = useState<Record<string, boolean>>({});
   const { toast } = useToast();
   const { isAuthenticated, userType } = useAuth();
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchProperties = async () => {
+      setLoading(true);
       try {
-        setLoading(true);
-        const response = await axios.get('http://localhost:3001/api/properties');
-        setProperties(response.data.properties || []);
+        const response = await axios.get(ENDPOINTS.PROPERTIES);
+        console.log("Properties data:", response.data);
+        
+        // Ensure we're handling the data structure correctly
+        const propertiesData = response.data.properties || [];
+        setProperties(propertiesData);
         
         // Initialize image loading state for all properties
         const initialLoadingState: Record<string, boolean> = {};
-        response.data.properties.forEach((property: Property) => {
+        propertiesData.forEach((property: Property) => {
           if (property.imageUrls && property.imageUrls.length > 0) {
             initialLoadingState[property.PropertyID] = true;
+          } else {
+            // If no image URLs, mark as not loading
+            initialLoadingState[property.PropertyID] = false;
           }
         });
         setImageLoading(initialLoadingState);
       } catch (error: any) {
         console.error('Error fetching properties:', error);
+        setError('Failed to load properties');
         toast({
           title: 'Error',
           description: 'Failed to load properties. Please try again later.',
@@ -68,6 +78,7 @@ const Properties = () => {
   };
 
   const handleImageError = (propertyId: string, event: React.SyntheticEvent<HTMLImageElement>) => {
+    console.log(`Image failed to load for property ${propertyId}`);
     // Set fallback image
     event.currentTarget.src = 'https://placehold.co/600x400?text=No+Image';
     
@@ -135,6 +146,7 @@ const Properties = () => {
                         className="w-full h-full object-cover"
                         onLoad={() => handleImageLoad(property.PropertyID)}
                         onError={(e) => handleImageError(property.PropertyID, e)}
+                        loading="lazy"
                       />
                     </>
                   ) : (

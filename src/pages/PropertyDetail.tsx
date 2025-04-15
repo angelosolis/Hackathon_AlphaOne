@@ -1,10 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import axios from 'axios';
 import Navbar from '@/components/Navbar';
 import { useToast } from '@/components/ui/use-toast';
 import { Button } from '@/components/ui/button';
-import { Bed, Bath, Home, MapPin, DollarSign, Calendar, ArrowLeft, Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Bed, Bath, Home, MapPin, Calendar, ArrowLeft, Loader2, ChevronLeft, ChevronRight, Eye } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
+import 'leaflet/dist/leaflet.css';
+import { ENDPOINTS } from '../config/api'; // Import API endpoints
 
 interface Property {
   PropertyID: string;
@@ -22,6 +25,9 @@ interface Property {
   CreationDate: string;
   LastUpdated: string;
   Status: string;
+  ViewCount?: number;
+  Latitude?: number;
+  Longitude?: number;
 }
 
 const PropertyDetail = () => {
@@ -33,6 +39,7 @@ const PropertyDetail = () => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [imagesLoaded, setImagesLoaded] = useState<boolean[]>([]);
   const { toast } = useToast();
+  const { isAuthenticated, userType } = useAuth();
 
   useEffect(() => {
     const fetchPropertyDetail = async () => {
@@ -40,16 +47,22 @@ const PropertyDetail = () => {
         setLoading(true);
         setError(null);
         
-        // We only need the ID for the API call, the slug is just for SEO
-        const response = await axios.get(`http://localhost:3001/api/properties/${id}`);
+        console.log(`Fetching property details for ID: ${id}`);
+        // Use the endpoint from the config instead of hardcoded URL
+        const response = await axios.get(ENDPOINTS.PROPERTY_DETAIL(id));
+        console.log("Property detail response:", response.data);
         
         if (response.data) {
-          // The API returns the property directly, not nested in a property field
-          setProperty(response.data);
+          // The API returns the property directly
+          const propertyData = response.data;
+          setProperty(propertyData);
           
           // Initialize image loading state array
-          if (response.data.imageUrls) {
-            setImagesLoaded(new Array(response.data.imageUrls.length).fill(false));
+          if (propertyData.imageUrls && propertyData.imageUrls.length > 0) {
+            console.log(`Property has ${propertyData.imageUrls.length} images:`, propertyData.imageUrls);
+            setImagesLoaded(new Array(propertyData.imageUrls.length).fill(false));
+          } else {
+            console.log("Property has no images");
           }
         } else {
           setError('Property not found');
@@ -78,6 +91,7 @@ const PropertyDetail = () => {
   }, [id, toast]);
 
   const handleImageLoad = (index: number) => {
+    console.log(`Image ${index} loaded successfully`);
     setImagesLoaded(prev => {
       const newState = [...prev];
       newState[index] = true;
@@ -86,6 +100,7 @@ const PropertyDetail = () => {
   };
 
   const handleImageError = (index: number, event: React.SyntheticEvent<HTMLImageElement>) => {
+    console.log(`Image ${index} failed to load`);
     event.currentTarget.src = 'https://placehold.co/600x400?text=Image+Not+Available';
     handleImageLoad(index);
   };
@@ -130,6 +145,7 @@ const PropertyDetail = () => {
             onLoad={() => handleImageLoad(currentImageIndex)}
             onError={(e) => handleImageError(currentImageIndex, e)}
             style={{ display: imagesLoaded[currentImageIndex] ? 'block' : 'none' }}
+            loading="lazy"
           />
           {property.imageUrls.length > 1 && (
             <>
@@ -236,6 +252,12 @@ const PropertyDetail = () => {
             <MapPin className="h-4 w-4 mr-1" />
             <span>{property.Address}, {property.City}{property.State ? `, ${property.State}` : ''}</span>
           </div>
+          {property.ViewCount !== undefined && (
+             <div className="flex items-center text-gray-500 text-sm mt-1">
+               <Eye className="h-4 w-4 mr-1" /> 
+               <span>{property.ViewCount} views</span>
+             </div>
+          )}
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -248,8 +270,8 @@ const PropertyDetail = () => {
                 <div className="flex flex-col">
                   <span className="text-gray-500 text-sm">Price</span>
                   <span className="font-semibold flex items-center">
-                    <DollarSign className="h-4 w-4 mr-1" />
-                    ₱{property.Price ? property.Price.toLocaleString() : 'Contact for Price'}
+                    <span className="mr-1 font-bold">₱</span>
+                    {property.Price ? property.Price.toLocaleString() : 'Contact for Price'}
                   </span>
                 </div>
                 <div className="flex flex-col">
@@ -301,22 +323,158 @@ const PropertyDetail = () => {
 
               <h2 className="text-xl font-semibold mb-4">Description</h2>
               <p className="text-gray-700 whitespace-pre-line mb-6">{property.Description}</p>
+              
+              {/* Add Property Location Map */}
+              <div className="mt-6">
+                <h2 className="text-xl font-semibold mb-4">Location</h2>
+                <PropertyLocationMap property={property} />
+              </div>
             </div>
           </div>
           
           <div className="lg:col-span-1">
-            <div className="bg-white rounded-lg shadow-md p-6 sticky top-6">
-              <h2 className="text-xl font-semibold mb-4">Contact Agent</h2>
-              <p className="text-gray-600 mb-6">Interested in this property? Contact the listing agent for more information or to schedule a viewing.</p>
-              <Link to={`/chat?propertyId=${property.PropertyID}`} state={{ propertyDetails: property }}>
-                <Button className="w-full mb-2">Request Information</Button>
-              </Link>
-              <Link to={`/chat?propertyId=${property.PropertyID}&subject=viewing`} state={{ propertyDetails: property, subject: "viewing" }}>
-                <Button variant="outline" className="w-full">Schedule Viewing</Button>
-              </Link>
-            </div>
+            {isAuthenticated && (
+              <div className="bg-white rounded-lg shadow-md p-6 sticky top-6">
+                <h2 className="text-xl font-semibold mb-4">Contact Agent</h2>
+                <p className="text-gray-600 mb-6">Interested in this property? Contact the listing agent for more information or to schedule a viewing.</p>
+                <Link to={`/chat?propertyId=${property.PropertyID}`} state={{ propertyDetails: property }}>
+                  <Button className="w-full mb-2">Request Information</Button>
+                </Link>
+                <Link to={`/chat?propertyId=${property.PropertyID}&subject=viewing`} state={{ propertyDetails: property, subject: "viewing" }}>
+                  <Button variant="outline" className="w-full">Schedule Viewing</Button>
+                </Link>
+              </div>
+            )}
           </div>
         </div>
+      </div>
+    </div>
+  );
+};
+
+// Add the PropertyLocationMap component
+const PropertyLocationMap = ({ property }: { property: Property }) => {
+  const mapRef = useRef<HTMLDivElement>(null);
+  const mapInstanceRef = useRef<any>(null);
+  const [mapLoaded, setMapLoaded] = useState(false);
+  const [mapError, setMapError] = useState(false);
+  
+  // Get the full address as a formatted string
+  const getFullAddress = () => {
+    const parts = [];
+    if (property.Address) parts.push(property.Address);
+    if (property.City) parts.push(property.City);
+    if (property.State) parts.push(property.State);
+    
+    return parts.join(', ');
+  };
+  
+  const fullAddress = getFullAddress();
+  
+  useEffect(() => {
+    // Exit early if coordinates are missing
+    if (!property.Latitude || !property.Longitude) {
+      console.warn(`Property ${property.PropertyID} is missing coordinates. Cannot display map.`);
+      setMapError(true); // Set error state to display message
+      return;
+    }
+    
+    const initializeMap = async () => {
+      const latitude = property.Latitude!;
+      const longitude = property.Longitude!;
+            
+      try {
+        // Dynamically import Leaflet
+        const L = await import('leaflet');
+        
+        // Fix the default icon issue
+        delete (L.Icon.Default.prototype as any)._getIconUrl;
+        L.Icon.Default.mergeOptions({
+          iconRetinaUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon-2x.png',
+          iconUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png',
+          shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
+        });
+        
+        // If a map already exists, remove it
+        if (mapInstanceRef.current) {
+          mapInstanceRef.current.remove();
+          mapInstanceRef.current = null;
+        }
+        
+        // Create a new map instance
+        if (mapRef.current) {
+          const map = L.map(mapRef.current).setView([latitude, longitude], 15);
+          mapInstanceRef.current = map;
+          
+          // Add the tile layer (map imagery)
+          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          }).addTo(map);
+          
+          // Add marker for the property
+          const marker = L.marker([latitude, longitude])
+            .addTo(map)
+            .bindPopup(`
+              <div style="width: 180px;">
+                <h3 style="font-weight: bold; margin-bottom: 4px;">${property.Title}</h3>
+                <p style="font-size: 12px; margin-bottom: 4px;">${fullAddress}</p>
+                <p style="font-weight: bold; color: #ef4444;">₱${property.Price ? property.Price.toLocaleString() : 'Price unavailable'}</p>
+              </div>
+            `)
+            .openPopup();
+            
+          setMapLoaded(true);
+        }
+      } catch (error) {
+        console.error('Error initializing property location map:', error);
+        setMapError(true);
+      }
+    };
+    
+    initializeMap();
+    
+    // Cleanup function
+    return () => {
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.remove();
+        mapInstanceRef.current = null;
+      }
+    };
+  }, [property]);
+  
+  if (mapError) {
+    return (
+      <div className="space-y-2">
+        <div className="text-gray-700 mb-2">
+          <MapPin className="h-5 w-5 inline-block mr-1 text-gray-500" />
+          <span>{fullAddress}</span>
+        </div>
+        <div className="bg-gray-100 rounded-lg p-4 text-center border">
+          <p className="text-gray-600 text-sm">Map location not available for this property.</p>
+        </div>
+      </div>
+    );
+  }
+  
+  return (
+    <div className="space-y-2">
+      <div className="text-gray-700 mb-2">
+        <MapPin className="h-5 w-5 inline-block mr-1 text-gray-500" />
+        <span>{fullAddress}</span>
+      </div>
+      
+      <div className="border rounded-lg overflow-hidden">
+        {!mapLoaded && (
+          <div className="h-64 flex items-center justify-center bg-gray-100">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <span className="ml-2 text-gray-600">Loading map...</span>
+          </div>
+        )}
+        <div 
+          ref={mapRef} 
+          className="h-64 w-full"
+          style={{ display: mapLoaded ? 'block' : 'none' }}
+        ></div>
       </div>
     </div>
   );
